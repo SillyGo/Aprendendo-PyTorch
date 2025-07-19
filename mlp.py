@@ -1,10 +1,7 @@
 import torch 
-import torch.optim.adadelta
-import torch.utils.data.dataloader
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
 
 #1. CONFIGURANDO A CLASSE DA REDE.
 #depois irei configurar o dataset, mais embaixo, e organizarei ele nas
