@@ -157,7 +157,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 in_size = 115
 hide_size = 128
 num_classes = 2
-num_epochs = 20000
+num_epochs = 20000 #20000
 batch_size = 20
 lrate = 0.001
 
@@ -216,6 +216,20 @@ for i in range(len(time_stamp)):
 labels4 = np.array(labels)
 acc4 = np.array(acc)
 
+labels4 = labels4[0:1495]
+acc4 = acc4[0:1495]
+
+print(len(labels4))
+print(len(acc4))
+
+acc4 = create_sequences(acc4, 13)
+labels4 = label_image(labels, 13)
+
+print(len(labels4))
+print(len(acc4[0]))
+
+trainX = torch.tensor(acc4, dtype=torch.float32)
+trainY = torch.tensor(labels4, dtype=torch.float32)
 
 test_set = torch.utils.data.TensorDataset(trainX, trainY)
 
