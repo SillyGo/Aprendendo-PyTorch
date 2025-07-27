@@ -3,6 +3,8 @@ import pandas as pd
 import torch
 import torch.nn as nn
 
+#PS. this code doesnt quite work. I will make modifications in order o make it work, but that will be a while from now
+
 data_in = pd.read_csv('/var/input/trip2_potholes.csv')
 data_out= pd.read_csv('/output/trip2_sensors.csv')
 
