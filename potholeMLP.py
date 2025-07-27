@@ -11,7 +11,7 @@ data_out= pd.read_csv('trip2_sensors.csv')
 sensor_data = data_out.sort_values('timestamp', ascending=True)
 acc = sensor_data['accelerometerY'] #acho que isso é suficiente para pegar as informações do acelerometro y, testarei isso agora.
 time_stamp = [x for x in range(1987)]
-pothole_data = data_in.sort_values('timestamp', ascending=True)['timestamp'].values # Extract the 'timestamp' column and get the values as a NumPy array
+pothole_data = data_in.sort_values('timestamp', ascending=True)['timestamp'].values 
 for i in range(len(pothole_data)): # Iterate through the array
   pothole_data[i] = int((pothole_data[i] - 1493001885.2)*5)
 
@@ -58,8 +58,8 @@ sensor_data = data_out.sort_values('timestamp', ascending=True)
 acc = sensor_data['accelerometerY'] #acho que isso é suficiente para pegar as informações do acelerometro y, testarei isso agora.
 
 time_stamp = [x for x in range(len(acc))]
-pothole_data = data_in.sort_values('timestamp', ascending=True)['timestamp'].values # Extract the 'timestamp' column and get the values as a NumPy array
-for i in range(len(pothole_data)): # Iterate through the array
+pothole_data = data_in.sort_values('timestamp', ascending=True)['timestamp'].values 
+for i in range(len(pothole_data)): 
   pothole_data[i] = int((pothole_data[i] - 1493002780.6)*5)
 
 labels = []
@@ -173,7 +173,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=lrate)
 
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
-        #devemos agora fazer um reshape, o t100amanho da imagem, como visto em um print anterior, é [100,1,28,28], queremos transforma-lo em um formato de 100, 784
+      
         images = images.to(device)
         labels = labels.to(device)
 
@@ -202,7 +202,7 @@ sensor_data = data_out.sort_values('timestamp', ascending=True)
 acc = sensor_data['accelerometerY'] #acho que isso é suficiente para pegar as informações do acelerometro y, testarei isso agora.
 
 time_stamp = [x for x in range(len(acc))]
-pothole_data = data_in.sort_values('timestamp', ascending=True)['timestamp'].values # Extract the 'timestamp' column and get the values as a NumPy array
+pothole_data = data_in.sort_values('timestamp', ascending=True)['timestamp'].values 
 for i in range(len(pothole_data)): # Iterate through the array
   pothole_data[i] = int((pothole_data[i] - 1493003562.6)*5)
 
