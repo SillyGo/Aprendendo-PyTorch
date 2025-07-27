@@ -26,6 +26,9 @@ for i in range(len(time_stamp)):
 labels1 = np.array(labels)
 acc1 = np.array(acc)
 
+labels1 = labels1[0:1955]
+acc1 = acc1[0:1955]
+
 #TRIP 3:
 
 data_in = pd.read_csv('trip3_potholes.csv')
@@ -49,8 +52,10 @@ for i in range(len(time_stamp)):
 labels2 = np.array(labels)
 acc2 = np.array(acc)
 
-#TRIP 4:
+labels2 = labels2[0:2185]
+acc2 = acc2[0:2185]
 
+#TRIP 4:
 data_in = pd.read_csv('trip4_potholes.csv')
 data_out= pd.read_csv('trip4_sensors.csv')
 
@@ -59,7 +64,8 @@ acc = sensor_data['accelerometerY'] #acho que isso é suficiente para pegar as i
 
 time_stamp = [x for x in range(len(acc))]
 pothole_data = data_in.sort_values('timestamp', ascending=True)['timestamp'].values 
-for i in range(len(pothole_data)): 
+
+for i in range(len(pothole_data)): # Iterate through the array
   pothole_data[i] = int((pothole_data[i] - 1493002780.6)*5)
 
 labels = []
@@ -71,6 +77,11 @@ for i in range(len(time_stamp)):
 
 labels3 = np.array(labels)
 acc3 = np.array(acc)
+
+print(len(labels3), len(acc3))
+
+labels3 = labels3[0:1495]
+acc3 = acc3[0:1495]
 
 #COLANDO AS DIFERENTES TRIPS EM UM SÓ:
 
@@ -118,9 +129,11 @@ def label_image(labels, seq_lenght):
   return out
 
 
-seq = 50
+seq = 49
 xs = create_sequences(acc, seq)
 ys = label_image(labels, seq)
+
+print(f'num_images: {len(xs)}')
 
 print(len(xs[0]))
 
@@ -144,21 +157,24 @@ class NeuralNet(nn.Module):
         super(NeuralNet, self).__init__()
         self.l1 = nn.Linear(in_size, hide_size) #layer 1 
         self.relu = nn.ReLU()                   #funçao de ativação
-        self.l2 = nn.Linear(hide_size, out_size)#layer 2
+        self.l2 = nn.Linear(hide_size, 16)#layer 2
+        self.l3 = nn.Linear(16,out_size)
 
     def forward(self, x):
         out = self.l1(x)
         out = self.relu(out)
         out = self.l2(out)
+        out = self.relu(out)
+        out = self.l3(out)
         return out 
     
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 in_size = 115
-hide_size = 128
+hide_size = 8
 num_classes = 2
-num_epochs = 20000 #20000
-batch_size = 20
+num_epochs = 7000
+batch_size = 7
 lrate = 0.001
 
 train_loader = torch.utils.data.DataLoader(dataset=training_set, batch_size=batch_size, shuffle=True)
@@ -187,7 +203,7 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
 
-    if epoch % 1000 == 0:
+    if epoch % 100 == 0:
       print(f'epoch: {epoch}, / loss: {loss.item()}')
     elif epoch == num_epochs - 1:
       print(f'epoch: {epoch}, / loss: {loss.item()}')
@@ -203,8 +219,9 @@ acc = sensor_data['accelerometerY'] #acho que isso é suficiente para pegar as i
 
 time_stamp = [x for x in range(len(acc))]
 pothole_data = data_in.sort_values('timestamp', ascending=True)['timestamp'].values 
+
 for i in range(len(pothole_data)): # Iterate through the array
-  pothole_data[i] = int((pothole_data[i] - 1493003562.6)*5)
+  pothole_data[i] = int((pothole_data[i] - 1493002780.6)*5)
 
 labels = []
 for i in range(len(time_stamp)):
@@ -216,6 +233,8 @@ for i in range(len(time_stamp)):
 labels4 = np.array(labels)
 acc4 = np.array(acc)
 
+print(len(labels4), len(acc4))
+
 labels4 = labels4[0:1495]
 acc4 = acc4[0:1495]
 
@@ -223,10 +242,7 @@ print(len(labels4))
 print(len(acc4))
 
 acc4 = create_sequences(acc4, 13)
-labels4 = label_image(labels, 13)
-
-print(len(labels4))
-print(len(acc4[0]))
+labels4 = label_image(labels4, 13)
 
 trainX = torch.tensor(acc4, dtype=torch.float32)
 trainY = torch.tensor(labels4, dtype=torch.float32)
@@ -234,7 +250,7 @@ trainY = torch.tensor(labels4, dtype=torch.float32)
 test_set = torch.utils.data.TensorDataset(trainX, trainY)
 
 test_loader  = torch.utils.data.DataLoader(dataset=test_set, 
-                                           batch_size=batch_size, 
+                                           batch_size=50, 
                                            shuffle=False)
 
 with torch.no_grad():
@@ -243,10 +259,13 @@ with torch.no_grad():
     for images, labels in test_loader:
         images, labels = images.to(device), labels.to(device)
         outputs = model(images)
-
+        print(outputs)
         #torch.max() retorna o valor e o index, estamos interessados somente no index, de modo que salvamos o outro numa variavel _, usada para indicar que não usaremos o valor.
         _, predcits = torch.max(outputs,1)
-        n_samples += labels.shape[0] #numero de samples para uma batch, deve retornar 100
+        labels4 = torch.tensor(labels4)
+        print(labels)
+        print(predcits)
+        n_samples += labels.shape[0] 
         n_correct += (predcits == labels).sum().item()
 
     acc = 100.0*(n_correct/n_samples)
