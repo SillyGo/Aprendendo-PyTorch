@@ -9,7 +9,7 @@ data_in = pd.read_csv('trip2_potholes.csv')
 data_out= pd.read_csv('trip2_sensors.csv')
 
 sensor_data = data_out.sort_values('timestamp', ascending=True)
-acc = sensor_data['accelerometerY'] #acho que isso é suficiente para pegar as informações do acelerometro y, testarei isso agora.
+acc = sensor_data['gyroY'] #acho que isso é suficiente para pegar as informações do acelerometro y, testarei isso agora.
 time_stamp = [x for x in range(1987)]
 pothole_data = data_in.sort_values('timestamp', ascending=True)['timestamp'].values 
 for i in range(len(pothole_data)): # Iterate through the array
@@ -26,8 +26,8 @@ for i in range(len(time_stamp)):
 labels1 = np.array(labels)
 acc1 = np.array(acc)
 
-labels1 = labels1[0:1955]
-acc1 = acc1[0:1955]
+labels1 = labels1[0:1960]
+acc1 = acc1[0:1960]
 
 #TRIP 3:
 
@@ -35,7 +35,7 @@ data_in = pd.read_csv('trip3_potholes.csv')
 data_out= pd.read_csv('trip3_sensors.csv')
 
 sensor_data = data_out.sort_values('timestamp', ascending=True)
-acc = sensor_data['accelerometerY'] #acho que isso é suficiente para pegar as informações do acelerometro y, testarei isso agora.
+acc = sensor_data['gyroY'] #acho que isso é suficiente para pegar as informações do acelerometro y, testarei isso agora.
 
 time_stamp = [x for x in range(2210)]
 pothole_data = data_in.sort_values('timestamp', ascending=True)['timestamp'].values # Extract the 'timestamp' column and get the values as a NumPy array
@@ -52,15 +52,15 @@ for i in range(len(time_stamp)):
 labels2 = np.array(labels)
 acc2 = np.array(acc)
 
-labels2 = labels2[0:2185]
-acc2 = acc2[0:2185]
+labels2 = labels2[0:2100]
+acc2 = acc2[0:2100]
 
 #TRIP 4:
 data_in = pd.read_csv('trip4_potholes.csv')
 data_out= pd.read_csv('trip4_sensors.csv')
 
 sensor_data = data_out.sort_values('timestamp', ascending=True)
-acc = sensor_data['accelerometerY'] #acho que isso é suficiente para pegar as informações do acelerometro y, testarei isso agora.
+acc = sensor_data['gyroY'] #acho que isso é suficiente para pegar as informações do acelerometro y, testarei isso agora.
 
 time_stamp = [x for x in range(len(acc))]
 pothole_data = data_in.sort_values('timestamp', ascending=True)['timestamp'].values 
@@ -80,8 +80,37 @@ acc3 = np.array(acc)
 
 print(len(labels3), len(acc3))
 
-labels3 = labels3[0:1495]
-acc3 = acc3[0:1495]
+labels3 = labels3[0:1540]
+acc3 = acc3[0:1540]
+
+#TRIP 5:
+
+data_in = pd.read_csv('trip5_potholes.csv')
+data_out= pd.read_csv('trip5_sensors.csv')
+
+sensor_data = data_out.sort_values('timestamp', ascending=True)
+acc = sensor_data['gyroY'] #acho que isso é suficiente para pegar as informações do acelerometro y, testarei isso agora.
+
+time_stamp = [x for x in range(len(acc))]
+pothole_data = data_in.sort_values('timestamp', ascending=True)['timestamp'].values 
+
+for i in range(len(pothole_data)): # Iterate through the array
+  pothole_data[i] = int((pothole_data[i] - 1493003562.6)*5)
+
+labels = []
+for i in range(len(time_stamp)):
+  if (time_stamp[i] in pothole_data):
+    labels.append(1)
+  else:
+    labels.append(0)
+
+labels4 = np.array(labels)
+acc4 = np.array(acc)
+
+print(len(labels4), len(acc4))
+
+labels4 = labels4[0:1820]
+acc4 = acc4[0:1820]
 
 #COLANDO AS DIFERENTES TRIPS EM UM SÓ:
 
@@ -98,6 +127,10 @@ for i in range(len(labels2)):
 for i in range(len(labels3)):
   labels.append(labels3[i])
   acc.append(acc3[i])
+
+for i in range(len(labels4)):
+  labels.append(labels4[i])
+  acc.append(acc4[i])
 
 acc = np.array(acc)
 labels = np.array(labels)
@@ -129,7 +162,7 @@ def label_image(labels, seq_lenght):
   return out
 
 
-seq = 49
+seq = 53
 xs = create_sequences(acc, seq)
 ys = label_image(labels, seq)
 
@@ -157,8 +190,8 @@ class NeuralNet(nn.Module):
         super(NeuralNet, self).__init__()
         self.l1 = nn.Linear(in_size, hide_size) #layer 1 
         self.relu = nn.ReLU()                   #funçao de ativação
-        self.l2 = nn.Linear(hide_size, 16)#layer 2
-        self.l3 = nn.Linear(16,out_size)
+        self.l2 = nn.Linear(hide_size, 64)#layer 2
+        self.l3 = nn.Linear(64,out_size)
 
     def forward(self, x):
         out = self.l1(x)
@@ -170,12 +203,12 @@ class NeuralNet(nn.Module):
     
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-in_size = 115
-hide_size = 8
+in_size = 140
+hide_size = 128
 num_classes = 2
-num_epochs = 7000
+num_epochs = 400
 batch_size = 7
-lrate = 0.001
+lrate = 0.01
 
 train_loader = torch.utils.data.DataLoader(dataset=training_set, batch_size=batch_size, shuffle=True)
 print(train_loader)
@@ -211,17 +244,19 @@ for epoch in range(num_epochs):
 
 #verif
 
-data_in = pd.read_csv('trip4_potholes.csv')
-data_out= pd.read_csv('trip4_sensors.csv')
+data_in = pd.read_csv('trip1_potholes.csv')
+data_out= pd.read_csv('trip1_sensors.csv')
 
 sensor_data = data_out.sort_values('timestamp', ascending=True)
-acc = sensor_data['accelerometerY'] #acho que isso é suficiente para pegar as informações do acelerometro y, testarei isso agora.
+acc = sensor_data['gyroY'] #acho que isso é suficiente para pegar as informações do acelerometro y, testarei isso agora.
 
 time_stamp = [x for x in range(len(acc))]
 pothole_data = data_in.sort_values('timestamp', ascending=True)['timestamp'].values 
 
 for i in range(len(pothole_data)): # Iterate through the array
-  pothole_data[i] = int((pothole_data[i] - 1493002780.6)*5)
+  pothole_data[i] = int((pothole_data[i] - 1492638964.5)*5)
+
+print(pothole_data)
 
 labels = []
 for i in range(len(time_stamp)):
@@ -235,17 +270,17 @@ acc4 = np.array(acc)
 
 print(len(labels4), len(acc4))
 
-labels4 = labels4[0:1495]
-acc4 = acc4[0:1495]
+labels4 = labels4[0:2100]
+acc4 = acc4[0:2100]
 
 print(len(labels4))
 print(len(acc4))
 
-acc4 = create_sequences(acc4, 13)
-labels4 = label_image(labels4, 13)
+acc4 = create_sequences(acc4, 15)
+labels4 = label_image(labels4, 15)
 
 trainX = torch.tensor(acc4, dtype=torch.float32)
-trainY = torch.tensor(labels4, dtype=torch.float32)
+trainY = torch.tensor(labels4, dtype=torch.long)
 
 test_set = torch.utils.data.TensorDataset(trainX, trainY)
 
@@ -263,7 +298,7 @@ with torch.no_grad():
         #torch.max() retorna o valor e o index, estamos interessados somente no index, de modo que salvamos o outro numa variavel _, usada para indicar que não usaremos o valor.
         _, predcits = torch.max(outputs,1)
         labels4 = torch.tensor(labels4)
-        print(labels)
+        print(labels4)
         print(predcits)
         n_samples += labels.shape[0] 
         n_correct += (predcits == labels).sum().item()
