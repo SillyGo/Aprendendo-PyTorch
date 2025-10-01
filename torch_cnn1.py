@@ -68,8 +68,6 @@ model = convnet().to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=lrate)
 
-n_total_steps = len(train_loader)
-
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
         images = images.to(device)
