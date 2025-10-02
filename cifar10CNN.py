@@ -5,6 +5,22 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+def validate(test_loader,net):
+    with torch.no_grad():
+        n_correct = 0
+        n_samples = 0
+        for images, labels in test_loader:
+            outputs = net(images)
+
+            #torch.max() retorna o valor e o index, estamos interessados somente no index, de modo que salvamos o outro numa variavel _, usada para indicar que não usaremos o valor.
+            _, predcits = torch.max(outputs,1)
+            n_samples += labels.shape[0] #numero de samples para uma batch, deve retornar 100
+            n_correct += (predcits == labels).sum().item()
+
+        acc = 100.0*(n_correct/n_samples)
+        print(f'acc: {acc}')
+        return acc
+
 transforms = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))
@@ -34,7 +50,7 @@ class convnet(nn.Module):
 
         #dropout layers
         self.linDrop = nn.Dropout(p=0.2)
-        self.cnnDrop = nn.Dropout2d(p=0.4)
+        self.cnnDrop = nn.Dropout2d(p=0.2)
         
     def forward(self,x):
         x = F.relu(self.cnnDrop(self.conv1(x)))
@@ -52,10 +68,13 @@ class convnet(nn.Module):
 net = convnet()
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), 
-                      lr=0.001,
+                      lr=0.01,
                       momentum=0.9)
 
-epoch = 50
+epoch = 10
+losses = []
+val_losses = []
+
 
 for i in range(epoch):
     print(f'epoch: {i}')
@@ -74,20 +93,22 @@ for i in range(epoch):
         running_loss += loss.item()
 
     print(f'loss: {running_loss/len(train_loader)}')
+    losses.append(running_loss)
+    val_losses.append(validate(test_loader,net))
 
 print("treinamento concluído! :D")
 
+import matplotlib.pyplot as plt
 
-with torch.no_grad():
-    n_correct = 0
-    n_samples = 0
-    for images, labels in test_loader:
-        outputs = net(images)
+# Create the plot with both lists
+plt.plot(losses, label='training loss over time')
+plt.plot(val_losses, label='validation accuracy over time')
 
-        #torch.max() retorna o valor e o index, estamos interessados somente no index, de modo que salvamos o outro numa variavel _, usada para indicar que não usaremos o valor.
-        _, predcits = torch.max(outputs,1)
-        n_samples += labels.shape[0] #numero de samples para uma batch, deve retornar 100
-        n_correct += (predcits == labels).sum().item()
+# Add labels, title, and legend
+plt.xlabel('Index')
+plt.ylabel('Values')
+plt.legend()
 
-    acc = 100.0*(n_correct/n_samples)
-    print(f'acc: {acc}')
+# Display the plot
+plt.ylim(0, 3)
+plt.show()
