@@ -49,7 +49,7 @@ class convnet(nn.Module):
         self.dense3 = nn.Linear(64,10)
 
         #dropout layers
-        self.linDrop = nn.Dropout(p=0.2)
+        self.linDrop = nn.Dropout(p=0.05)
         self.cnnDrop = nn.Dropout2d(p=0.2)
         
     def forward(self,x):
@@ -62,7 +62,7 @@ class convnet(nn.Module):
 
         x = F.relu(self.linDrop(self.dense1(x)))
         x = F.relu(self.linDrop(self.dense2(x)))
-        x = self.linDrop(self.dense3(x))
+        x = self.dense3(x)
         return x
     
 net = convnet()
@@ -71,7 +71,7 @@ optimizer = optim.SGD(net.parameters(),
                       lr=0.01,
                       momentum=0.9)
 
-epoch = 10
+epoch = 50
 losses = []
 val_losses = []
 
@@ -93,14 +93,18 @@ for i in range(epoch):
         running_loss += loss.item()
 
     print(f'loss: {running_loss/len(train_loader)}')
-    losses.append(running_loss)
-    val_losses.append(validate(test_loader,net))
+    losses.append(running_loss/len(train_loader))
+    val_losses.append(validate(test_loader,net)/100)
 
 print("treinamento concluído! :D")
 
 import matplotlib.pyplot as plt
 
 # Create the plot with both lists
+
+print(losses)
+print(val_losses)
+
 plt.plot(losses, label='training loss over time')
 plt.plot(val_losses, label='validation accuracy over time')
 
